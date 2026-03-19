@@ -1,7 +1,7 @@
+import ctypes
 import json
 import sys
 import time
-import ctypes
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
@@ -69,7 +69,7 @@ ROI_HEIGHT = 200
 WINDOW_TITLE_KEYWORDS = ["少女前线2", "GF2_Exilium"]
 
 # 坐标缩放：标定时的 DPI 缩放 / 运行时的 DPI 缩放。标定 150%、运行 100% 时填 1.5；相同则填 1.0
-COORD_SCALE = 1.5
+COORD_SCALE = 1.0
 
 # 对局部截图或易变图标可单独放宽阈值
 PER_TEMPLATE_THRESHOLD = {
@@ -229,7 +229,9 @@ def find_game_window_rect() -> Optional[CaptureArea]:
     user32 = ctypes.windll.user32
     title_hits: List[Tuple[int, int]] = []
 
-    EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+    EnumWindowsProc = ctypes.WINFUNCTYPE(
+        ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p
+    )
     GetWindowTextLengthW = user32.GetWindowTextLengthW
     GetWindowTextW = user32.GetWindowTextW
     IsWindowVisible = user32.IsWindowVisible
@@ -237,7 +239,12 @@ def find_game_window_rect() -> Optional[CaptureArea]:
     ClientToScreen = user32.ClientToScreen
 
     class RECT(ctypes.Structure):
-        _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long), ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+        _fields_ = [
+            ("left", ctypes.c_long),
+            ("top", ctypes.c_long),
+            ("right", ctypes.c_long),
+            ("bottom", ctypes.c_long),
+        ]
 
     class POINT(ctypes.Structure):
         _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
@@ -273,7 +280,9 @@ def find_game_window_rect() -> Optional[CaptureArea]:
     return getattr(find_game_window_rect, "_best_area", None) if title_hits else None
 
 
-def grab_screen_gray(sct: mss.mss, area: Optional[CaptureArea]) -> Tuple[np.ndarray, int, int]:
+def grab_screen_gray(
+    sct: mss.mss, area: Optional[CaptureArea]
+) -> Tuple[np.ndarray, int, int]:
     if area is None:
         mon = sct.monitors[0]  # 虚拟屏幕（多显示器）
         left = int(mon["left"])
@@ -354,10 +363,12 @@ def build_target_points(
     offset_y: int,
     anchor_pt: Optional[Point],
     scale: float = 1.0,
+    anchor_offset: Tuple[int, int] = (0, 0),
 ) -> Dict[str, Tuple[int, int]]:
-    """相对窗口左上角等比例缩放：target = 窗口左上 + (点 - 锚点) * scale"""
+    """相对窗口左上角等比例缩放，anchor_offset=(x,y) 表示整体往右x、往上y像素（正数）"""
     if anchor_pt is None:
         anchor_pt = Point("", 0, 0)
+    adj_x, adj_y = anchor_offset  # adj_x=往右, adj_y=往上(屏幕y减小)
     targets: Dict[str, Tuple[int, int]] = {}
     frame_left = offset_x + anchor_pt.abs_x
     frame_top = offset_y + anchor_pt.abs_y
@@ -365,8 +376,8 @@ def build_target_points(
         rel_x = (p.abs_x - anchor_pt.abs_x) * scale
         rel_y = (p.abs_y - anchor_pt.abs_y) * scale
         targets[normalize_name(name)] = (
-            int(frame_left + rel_x),
-            int(frame_top + rel_y),
+            int(frame_left + rel_x + adj_x),
+            int(frame_top + rel_y - adj_y),
         )
     return targets
 
@@ -375,6 +386,7 @@ def run_bot(
     stop_event: "object",
     log: Callable[[str], None] = print,
     coord_scale: float | None = None,
+    anchor_offset: Tuple[int, int] = (0, 0),
 ) -> None:
     """主循环，支持通过 stop_event 停止，log 用于输出日志。"""
     log("GF2 点击脚本启动中...")
@@ -424,10 +436,12 @@ def run_bot(
         anchor_pt = calib_points.get("锚点1")
         scale = coord_scale if coord_scale is not None else COORD_SCALE
         target_points = build_target_points(
-            calib_points, offset_x, offset_y, anchor_pt, scale
+            calib_points, offset_x, offset_y, anchor_pt, scale, anchor_offset
         )
         if scale != 1.0:
             log(f"已启用坐标缩放: COORD_SCALE={scale}")
+        if anchor_offset != (0, 0):
+            log(f"已启用锚点修正: x={anchor_offset[0]}, y={anchor_offset[1]}")
 
         active_templates = [
             t
@@ -443,12 +457,22 @@ def run_bot(
             t.point_name for t in active_templates if t.point_name not in target_points
         ]
         if missing_points:
-            log("警告：以下模板无坐标，已跳过：" + ", ".join(sorted(set(missing_points))))
+            log(
+                "警告：以下模板无坐标，已跳过："
+                + ", ".join(sorted(set(missing_points)))
+            )
 
         roi_x, roi_y, roi_w, roi_h = get_roi_rect(first_frame)
         log(f"识别区域(右上): x={roi_x}, y={roi_y}, w={roi_w}, h={roi_h}")
 
-        submit_tpl = next((t for t in templates if t.point_name == normalize_name(SUBMIT_TEMPLATE_NAME)), None)
+        submit_tpl = next(
+            (
+                t
+                for t in templates
+                if t.point_name == normalize_name(SUBMIT_TEMPLATE_NAME)
+            ),
+            None,
+        )
         if submit_tpl is None:
             log(f"警告：未找到提交模板 {SUBMIT_TEMPLATE_NAME}，将跳过自动提交。")
 
@@ -544,6 +568,7 @@ def run_bot(
 def main() -> None:
     """命令行入口，使用 print 输出，Ctrl+C 可停止。"""
     import threading
+
     stop = threading.Event()
 
     def worker() -> None:

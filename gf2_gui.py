@@ -11,7 +11,7 @@ import sys
 import queue
 import threading
 import tkinter as tk
-from tkinter import scrolledtext, font as tkfont, ttk
+from tkinter import scrolledtext, font as tkfont
 # 导入核心逻辑（确保在项目根目录或已安装）
 try:
     from gf2_bot import run_bot
@@ -36,6 +36,7 @@ class GF2ClickApp:
         self.is_running = False
 
         self._build_ui()
+        self._bind_hotkeys()
         self._start_log_poll()
 
     def _build_ui(self) -> None:
@@ -75,15 +76,20 @@ class GF2ClickApp:
         self.btn_stop.pack(side=tk.LEFT)
         self.status_var = tk.StringVar(value="状态: 就绪")
         tk.Label(btn_frame, textvariable=self.status_var, fg="#666").pack(side=tk.LEFT, padx=(20, 0))
+        tk.Label(btn_frame, text="  (F10启动 F12停止)", fg="#999", font=("", 8)).pack(side=tk.LEFT)
 
-        # 屏幕缩放选项：100% -> COORD_SCALE=1.5，150% -> COORD_SCALE=1.0
-        tk.Label(btn_frame, text="屏幕缩放:", fg="#666").pack(side=tk.LEFT, padx=(20, 4))
-        self.scale_var = tk.StringVar(value="150%")
-        self.scale_combo = ttk.Combobox(
-            btn_frame, textvariable=self.scale_var,
-            values=["100%", "150%"], state="readonly", width=6
-        )
-        self.scale_combo.pack(side=tk.LEFT)
+        # 锚点修正：x 往右移，y 往上移（像素）
+        opt_frame = tk.Frame(self.root, padx=10, pady=4)
+        opt_frame.pack(fill=tk.X)
+        tk.Label(opt_frame, text="锚点修正 x:", fg="#666").pack(side=tk.LEFT, padx=(0, 2))
+        self.anchor_offset_x_var = tk.StringVar(value="25")
+        self.anchor_offset_x_entry = tk.Entry(opt_frame, textvariable=self.anchor_offset_x_var, width=5)
+        self.anchor_offset_x_entry.pack(side=tk.LEFT, padx=(0, 12))
+        tk.Label(opt_frame, text="y:", fg="#666").pack(side=tk.LEFT, padx=(0, 2))
+        self.anchor_offset_y_var = tk.StringVar(value="25")
+        self.anchor_offset_y_entry = tk.Entry(opt_frame, textvariable=self.anchor_offset_y_var, width=5)
+        self.anchor_offset_y_entry.pack(side=tk.LEFT)
+        tk.Label(opt_frame, text="  (正数=往右/上移，默认 x:25 y:25)", fg="#999", font=("", 8)).pack(side=tk.LEFT, padx=(8, 0))
 
         # 日志区
         log_label = tk.Label(self.root, text="运行日志:", anchor=tk.W)
@@ -102,8 +108,32 @@ class GF2ClickApp:
     def _log(self, msg: str) -> None:
         self.log_queue.put(msg)
 
-    def _get_coord_scale(self) -> float:
-        return 1.5 if self.scale_var.get() == "100%" else 1.0
+    def _bind_hotkeys(self) -> None:
+        """F10 启动，F12 停止（全局热键）"""
+        try:
+            from pynput import keyboard
+            def on_f10():
+                self.root.after(0, self._on_start)
+            def on_f12():
+                self.root.after(0, self._on_stop)
+            self._hotkey_listener = keyboard.GlobalHotKeys({
+                "<f10>": on_f10,
+                "<f12>": on_f12,
+            })
+            self._hotkey_listener.start()
+        except Exception:
+            self._hotkey_listener = None
+
+    def _get_anchor_offset(self) -> tuple[int, int]:
+        try:
+            x = int(self.anchor_offset_x_var.get().strip() or "0")
+        except ValueError:
+            x = 0
+        try:
+            y = int(self.anchor_offset_y_var.get().strip() or "0")
+        except ValueError:
+            y = 0
+        return (x, y)
 
     def _on_start(self) -> None:
         if self.is_running:
@@ -112,14 +142,19 @@ class GF2ClickApp:
         self.stop_event.clear()
         self.btn_start.config(state=tk.DISABLED)
         self.btn_stop.config(state=tk.NORMAL)
-        self.scale_combo.config(state=tk.DISABLED)
+        self.anchor_offset_x_entry.config(state=tk.DISABLED)
+        self.anchor_offset_y_entry.config(state=tk.DISABLED)
         self.status_var.set("状态: 运行中")
 
-        coord_scale = self._get_coord_scale()
+        anchor_offset_x, anchor_offset_y = self._get_anchor_offset()
 
         def worker() -> None:
             try:
-                run_bot(stop_event=self.stop_event, log=self._log, coord_scale=coord_scale)
+                run_bot(
+                    stop_event=self.stop_event,
+                    log=self._log,
+                    anchor_offset=(anchor_offset_x, anchor_offset_y),
+                )
             except Exception as e:
                 self._log(f"运行失败: {e}")
             finally:
@@ -139,7 +174,8 @@ class GF2ClickApp:
         self.is_running = False
         self.btn_start.config(state=tk.NORMAL)
         self.btn_stop.config(state=tk.DISABLED)
-        self.scale_combo.config(state="readonly")
+        self.anchor_offset_x_entry.config(state=tk.NORMAL)
+        self.anchor_offset_y_entry.config(state=tk.NORMAL)
         self.status_var.set("状态: 已停止")
 
     def _start_log_poll(self) -> None:
@@ -169,6 +205,11 @@ class GF2ClickApp:
             self._do_close()
 
     def _do_close(self) -> None:
+        if getattr(self, "_hotkey_listener", None):
+            try:
+                self._hotkey_listener.stop()
+            except Exception:
+                pass
         if self.is_running:
             self.stop_event.set()
             if self.bot_thread and self.bot_thread.is_alive():

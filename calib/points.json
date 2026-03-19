@@ -1,8 +1,8 @@
 {
   "anchor": {
     "name": "锚点1",
-    "abs_x": 503,
-    "abs_y": 266,
+    "abs_x": 478,
+    "abs_y": 241,
     "rel_dx": null,
     "rel_dy": null,
     "captured_at": "2026-03-19T15:22:44"
@@ -10,184 +10,184 @@
   "points": [
     {
       "name": "坚果1",
-      "abs_x": 836,
-      "abs_y": 888,
+      "abs_x": 811,
+      "abs_y": 863,
       "rel_dx": 333,
       "rel_dy": 622,
       "captured_at": "2026-03-19T15:22:53"
     },
     {
       "name": "补充坚果1",
-      "abs_x": 734,
-      "abs_y": 885,
+      "abs_x": 709,
+      "abs_y": 860,
       "rel_dx": 231,
       "rel_dy": 619,
       "captured_at": "2026-03-19T15:23:01"
     },
     {
       "name": "水果1",
-      "abs_x": 725,
-      "abs_y": 1051,
+      "abs_x": 700,
+      "abs_y": 1026,
       "rel_dx": 222,
       "rel_dy": 785,
       "captured_at": "2026-03-19T15:23:03"
     },
     {
       "name": "补充水果1",
-      "abs_x": 718,
-      "abs_y": 1137,
+      "abs_x": 693,
+      "abs_y": 1112,
       "rel_dx": 215,
       "rel_dy": 871,
       "captured_at": "2026-03-19T15:23:05"
     },
     {
       "name": "水果2",
-      "abs_x": 859,
-      "abs_y": 1050,
+      "abs_x": 834,
+      "abs_y": 1025,
       "rel_dx": 356,
       "rel_dy": 784,
       "captured_at": "2026-03-19T15:23:06"
     },
     {
       "name": "补充水果2",
-      "abs_x": 849,
-      "abs_y": 1144,
+      "abs_x": 824,
+      "abs_y": 1119,
       "rel_dx": 346,
       "rel_dy": 878,
       "captured_at": "2026-03-19T15:23:08"
     },
     {
       "name": "水果3",
-      "abs_x": 991,
-      "abs_y": 1055,
+      "abs_x": 966,
+      "abs_y": 1030,
       "rel_dx": 488,
       "rel_dy": 789,
       "captured_at": "2026-03-19T15:23:10"
     },
     {
       "name": "补充水果3",
-      "abs_x": 989,
-      "abs_y": 1139,
+      "abs_x": 964,
+      "abs_y": 1114,
       "rel_dx": 486,
       "rel_dy": 873,
       "captured_at": "2026-03-19T15:23:12"
     },
     {
       "name": "小食1",
-      "abs_x": 1129,
-      "abs_y": 896,
+      "abs_x": 1104,
+      "abs_y": 871,
       "rel_dx": 626,
       "rel_dy": 630,
       "captured_at": "2026-03-19T15:23:13"
     },
     {
       "name": "小食2",
-      "abs_x": 1274,
-      "abs_y": 901,
+      "abs_x": 1249,
+      "abs_y": 876,
       "rel_dx": 771,
       "rel_dy": 635,
       "captured_at": "2026-03-19T15:23:15"
     },
     {
       "name": "小食3",
-      "abs_x": 1426,
-      "abs_y": 905,
+      "abs_x": 1401,
+      "abs_y": 880,
       "rel_dx": 923,
       "rel_dy": 639,
       "captured_at": "2026-03-19T15:23:16"
     },
     {
       "name": "温度1",
-      "abs_x": 1591,
-      "abs_y": 898,
+      "abs_x": 1566,
+      "abs_y": 873,
       "rel_dx": 1088,
       "rel_dy": 632,
       "captured_at": "2026-03-19T15:23:18"
     },
     {
       "name": "温度2",
-      "abs_x": 1731,
-      "abs_y": 906,
+      "abs_x": 1706,
+      "abs_y": 881,
       "rel_dx": 1228,
       "rel_dy": 640,
       "captured_at": "2026-03-19T15:23:20"
     },
     {
       "name": "水1",
-      "abs_x": 1840,
-      "abs_y": 895,
+      "abs_x": 1815,
+      "abs_y": 870,
       "rel_dx": 1337,
       "rel_dy": 629,
       "captured_at": "2026-03-19T15:23:21"
     },
     {
       "name": "饮料1",
-      "abs_x": 1441,
-      "abs_y": 1041,
+      "abs_x": 1416,
+      "abs_y": 1016,
       "rel_dx": 938,
       "rel_dy": 775,
       "captured_at": "2026-03-19T15:23:23"
     },
     {
       "name": "补充饮料1",
-      "abs_x": 1437,
-      "abs_y": 1147,
+      "abs_x": 1412,
+      "abs_y": 1122,
       "rel_dx": 934,
       "rel_dy": 881,
       "captured_at": "2026-03-19T15:23:25"
     },
     {
       "name": "饮料2",
-      "abs_x": 1582,
-      "abs_y": 1034,
+      "abs_x": 1557,
+      "abs_y": 1009,
       "rel_dx": 1079,
       "rel_dy": 768,
       "captured_at": "2026-03-19T15:23:26"
     },
     {
       "name": "补充饮料2",
-      "abs_x": 1579,
-      "abs_y": 1142,
+      "abs_x": 1554,
+      "abs_y": 1117,
       "rel_dx": 1076,
       "rel_dy": 876,
       "captured_at": "2026-03-19T15:23:28"
     },
     {
       "name": "饮料3",
-      "abs_x": 1853,
-      "abs_y": 1038,
+      "abs_x": 1828,
+      "abs_y": 1013,
       "rel_dx": 1350,
       "rel_dy": 772,
       "captured_at": "2026-03-19T15:23:30"
     },
     {
       "name": "补充饮料3",
-      "abs_x": 1850,
-      "abs_y": 1155,
+      "abs_x": 1825,
+      "abs_y": 1130,
       "rel_dx": 1347,
       "rel_dy": 889,
       "captured_at": "2026-03-19T15:23:32"
     },
     {
       "name": "浮沫1",
-      "abs_x": 1622,
-      "abs_y": 760,
+      "abs_x": 1597,
+      "abs_y": 735,
       "rel_dx": 1119,
       "rel_dy": 494,
       "captured_at": "2026-03-19T15:23:35"
     },
     {
       "name": "咖啡1",
-      "abs_x": 1735,
-      "abs_y": 790,
+      "abs_x": 1710,
+      "abs_y": 765,
       "rel_dx": 1232,
       "rel_dy": 524,
       "captured_at": "2026-03-19T15:23:36"
     },
     {
       "name": "补充咖啡1",
-      "abs_x": 1842,
-      "abs_y": 733,
+      "abs_x": 1817,
+      "abs_y": 708,
       "rel_dx": 1339,
       "rel_dy": 467,
       "captured_at": "2026-03-19T15:23:38"
