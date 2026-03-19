@@ -20,7 +20,7 @@
 
 ### 方式一：使用打包好的 exe（推荐）
 
-1. 下载 `GF2_点击助手.exe`（在 [Releases](../../releases) 中获取）
+1. 下载 `GF2_点击助手.exe`（在 [Releases](https://github.com/chenruiqi048-cmd/GF2_CLICK/releases) 中获取，或本地打包见下方说明）
 2. 确保 `calib` 和 `click_shots` 文件夹与 exe 同目录，或使用已内嵌资源的单文件 exe
 3. 双击运行，点击「启动」即可
 
@@ -69,14 +69,16 @@ GF2_CLICK/
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --windowed ^
-  --add-data "calib;calib" ^
-  --add-data "click_shots;click_shots" ^
-  --name "GF2_点击助手" ^
-  gf2_gui.py
+pyinstaller build.spec
 ```
 
-生成的 exe 位于 `dist/` 目录。
+或使用命令行：
+
+```bash
+pyinstaller --onefile --windowed --add-data "calib;calib" --add-data "click_shots;click_shots" --name "GF2_Click_Helper" gf2_gui.py
+```
+
+生成的 exe 位于 `dist/` 目录（约 60MB）。
 
 ## 注意事项
 
