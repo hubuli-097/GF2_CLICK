@@ -23,6 +23,7 @@ TEMPLATE_DIR = BASE_DIR / "click_shots"
 # 只处理这批主要点位（不含补充*，且先忽略小食3）
 ACTIVE_POINT_NAMES = {
     "坚果1",
+    "椰果1",
     "水果1",
     "水果2",
     "水果3",

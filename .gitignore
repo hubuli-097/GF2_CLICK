@@ -22,3 +22,6 @@ dist/
 
 # 本地锁定/临时文件（保留 calib 下的 points.json）
 calib/.capture_points.lock
+
+# 本地便捷脚本（非必要，各自按需使用）
+一键打包.bat
