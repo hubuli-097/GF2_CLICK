@@ -15,11 +15,23 @@ from tkinter import scrolledtext, font as tkfont
 # 导入核心逻辑（确保在项目根目录或已安装）
 try:
     from gf2_bot import run_bot
+    from force_client_window import (
+        DEFAULT_FORCE_CLIENT_H,
+        DEFAULT_FORCE_CLIENT_W,
+        find_game_hwnd,
+        force_client_size,
+    )
 except ImportError:
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from gf2_bot import run_bot
+    from force_client_window import (
+        DEFAULT_FORCE_CLIENT_H,
+        DEFAULT_FORCE_CLIENT_W,
+        find_game_hwnd,
+        force_client_size,
+    )
 
 
 class GF2ClickApp:
@@ -73,10 +85,28 @@ class GF2ClickApp:
             state=tk.DISABLED,
             cursor="hand2",
         )
-        self.btn_stop.pack(side=tk.LEFT)
+        self.btn_stop.pack(side=tk.LEFT, padx=(0, 8))
+        self.btn_force_window = tk.Button(
+            btn_frame,
+            text="对齐客户区",
+            command=self._on_force_window,
+            width=10,
+            height=1,
+            bg="#2196F3",
+            fg="white",
+            font=("", 10),
+            cursor="hand2",
+        )
+        self.btn_force_window.pack(side=tk.LEFT)
         self.status_var = tk.StringVar(value="状态: 就绪")
         tk.Label(btn_frame, textvariable=self.status_var, fg="#666").pack(side=tk.LEFT, padx=(20, 0))
         tk.Label(btn_frame, text="  (F10启动 F12停止)", fg="#999", font=("", 8)).pack(side=tk.LEFT)
+        tk.Label(
+            btn_frame,
+            text=f"  对齐={DEFAULT_FORCE_CLIENT_W}×{DEFAULT_FORCE_CLIENT_H}",
+            fg="#999",
+            font=("", 8),
+        ).pack(side=tk.LEFT)
 
         # 锚点修正：x 往右移，y 往上移（像素）
         opt_frame = tk.Frame(self.root, padx=10, pady=4)
@@ -134,6 +164,53 @@ class GF2ClickApp:
         except ValueError:
             y = 0
         return (x, y)
+
+    def _on_force_window(self) -> None:
+        """将游戏窗口客户区强制为标定尺寸（与 force_client_window 默认一致）。"""
+        self.btn_force_window.config(state=tk.DISABLED)
+
+        def worker() -> None:
+            try:
+                import win32gui
+            except ImportError:
+                self.root.after(
+                    0,
+                    lambda: self._log("对齐客户区失败: 请先 pip install pywin32"),
+                )
+                self.root.after(0, lambda: self.btn_force_window.config(state=tk.NORMAL))
+                return
+            hwnd = find_game_hwnd()
+            if not hwnd:
+                self.root.after(
+                    0,
+                    lambda: self._log("对齐客户区: 未找到游戏窗口，请先打开游戏。"),
+                )
+                self.root.after(0, lambda: self.btn_force_window.config(state=tk.NORMAL))
+                return
+            try:
+                win32gui.SetForegroundWindow(hwnd)
+            except Exception:
+                pass
+            import time as _time
+
+            _time.sleep(0.05)
+            ok, cw, ch = force_client_size(
+                hwnd, DEFAULT_FORCE_CLIENT_W, DEFAULT_FORCE_CLIENT_H
+            )
+            tw, th = DEFAULT_FORCE_CLIENT_W, DEFAULT_FORCE_CLIENT_H
+
+            def done() -> None:
+                self.btn_force_window.config(state=tk.NORMAL)
+                if ok:
+                    self._log(f"对齐客户区: 成功，客户区 {cw}×{ch}")
+                else:
+                    self._log(
+                        f"对齐客户区: 未完全达标，当前 {cw}×{ch}（目标 {tw}×{th}）"
+                    )
+
+            self.root.after(0, done)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _on_start(self) -> None:
         if self.is_running:

@@ -3,3 +3,4 @@ mss>=6.0
 numpy>=1.19.0
 pynput>=1.7.0
 pyinstaller>=5.0
+pywin32>=306
