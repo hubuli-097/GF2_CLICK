@@ -24,6 +24,7 @@ exe = EXE(
     [],
     name='GF2_点击助手',
     debug=False,
+    uac_admin=True,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,

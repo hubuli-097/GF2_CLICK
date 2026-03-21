@@ -14,7 +14,12 @@ import tkinter as tk
 from tkinter import scrolledtext, font as tkfont
 # 导入核心逻辑（确保在项目根目录或已安装）
 try:
-    from gf2_bot import run_bot
+    from gf2_bot import (
+        RUN_MODE_INFINITE_MATERIAL,
+        RUN_MODE_NO_CAT,
+        RUN_MODE_NORMAL,
+        run_bot,
+    )
     from force_client_window import (
         DEFAULT_FORCE_CLIENT_H,
         DEFAULT_FORCE_CLIENT_W,
@@ -25,13 +30,25 @@ except ImportError:
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from gf2_bot import run_bot
+    from gf2_bot import (
+        RUN_MODE_INFINITE_MATERIAL,
+        RUN_MODE_NO_CAT,
+        RUN_MODE_NORMAL,
+        run_bot,
+    )
     from force_client_window import (
         DEFAULT_FORCE_CLIENT_H,
         DEFAULT_FORCE_CLIENT_W,
         find_game_hwnd,
         force_client_size,
     )
+
+# 下拉显示文案 -> gf2_bot.run_mode
+RUN_MODE_DISPLAY_TO_KEY: dict[str, str] = {
+    "普通模式": RUN_MODE_NORMAL,
+    "无限材料模式": RUN_MODE_INFINITE_MATERIAL,
+    "无猫模式": RUN_MODE_NO_CAT,
+}
 
 
 class GF2ClickApp:
@@ -108,7 +125,24 @@ class GF2ClickApp:
             font=("", 8),
         ).pack(side=tk.LEFT)
 
-        # 锚点修正：x 往右移，y 往上移（像素）
+        mode_frame = tk.Frame(self.root, padx=10, pady=4)
+        mode_frame.pack(fill=tk.X)
+        tk.Label(mode_frame, text="运行模式:", fg="#666").pack(side=tk.LEFT, padx=(0, 6))
+        self.run_mode_display = tk.StringVar(value="普通模式")
+        self.run_mode_menu = tk.OptionMenu(
+            mode_frame,
+            self.run_mode_display,
+            *RUN_MODE_DISPLAY_TO_KEY.keys(),
+        )
+        self.run_mode_menu.pack(side=tk.LEFT)
+        tk.Label(
+            mode_frame,
+            text="  普通=主配料+补充；无限材料=不点补充；无猫=补充后多等 3s",
+            fg="#999",
+            font=("", 8),
+        ).pack(side=tk.LEFT, padx=(8, 0))
+
+        # 锚点修正：与 gf2_bot.build_target_points 一致，x 正=落点右移，y 正=落点上移（像素）
         opt_frame = tk.Frame(self.root, padx=10, pady=4)
         opt_frame.pack(fill=tk.X)
         tk.Label(opt_frame, text="锚点修正 x:", fg="#666").pack(side=tk.LEFT, padx=(0, 2))
@@ -116,10 +150,15 @@ class GF2ClickApp:
         self.anchor_offset_x_entry = tk.Entry(opt_frame, textvariable=self.anchor_offset_x_var, width=5)
         self.anchor_offset_x_entry.pack(side=tk.LEFT, padx=(0, 12))
         tk.Label(opt_frame, text="y:", fg="#666").pack(side=tk.LEFT, padx=(0, 2))
-        self.anchor_offset_y_var = tk.StringVar(value="25")
+        self.anchor_offset_y_var = tk.StringVar(value="-5")
         self.anchor_offset_y_entry = tk.Entry(opt_frame, textvariable=self.anchor_offset_y_var, width=5)
         self.anchor_offset_y_entry.pack(side=tk.LEFT)
-        tk.Label(opt_frame, text="  (正数=往右/上移，默认 x:25 y:25)", fg="#999", font=("", 8)).pack(side=tk.LEFT, padx=(8, 0))
+        tk.Label(
+            opt_frame,
+            text="  (x 正=右移，y 正=上移、负=下移；默认 25,-5)",
+            fg="#999",
+            font=("", 8),
+        ).pack(side=tk.LEFT, padx=(8, 0))
 
         # 日志区
         log_label = tk.Label(self.root, text="运行日志:", anchor=tk.W)
@@ -164,6 +203,10 @@ class GF2ClickApp:
         except ValueError:
             y = 0
         return (x, y)
+
+    def _get_run_mode_key(self) -> str:
+        label = self.run_mode_display.get().strip()
+        return RUN_MODE_DISPLAY_TO_KEY.get(label, RUN_MODE_NORMAL)
 
     def _on_force_window(self) -> None:
         """将游戏窗口客户区强制为标定尺寸（与 force_client_window 默认一致）。"""
@@ -221,9 +264,11 @@ class GF2ClickApp:
         self.btn_stop.config(state=tk.NORMAL)
         self.anchor_offset_x_entry.config(state=tk.DISABLED)
         self.anchor_offset_y_entry.config(state=tk.DISABLED)
+        self.run_mode_menu.config(state=tk.DISABLED)
         self.status_var.set("状态: 运行中")
 
         anchor_offset_x, anchor_offset_y = self._get_anchor_offset()
+        run_mode_key = self._get_run_mode_key()
 
         def worker() -> None:
             try:
@@ -231,6 +276,7 @@ class GF2ClickApp:
                     stop_event=self.stop_event,
                     log=self._log,
                     anchor_offset=(anchor_offset_x, anchor_offset_y),
+                    run_mode=run_mode_key,
                 )
             except Exception as e:
                 self._log(f"运行失败: {e}")
@@ -253,6 +299,7 @@ class GF2ClickApp:
         self.btn_stop.config(state=tk.DISABLED)
         self.anchor_offset_x_entry.config(state=tk.NORMAL)
         self.anchor_offset_y_entry.config(state=tk.NORMAL)
+        self.run_mode_menu.config(state=tk.NORMAL)
         self.status_var.set("状态: 已停止")
 
     def _start_log_poll(self) -> None:

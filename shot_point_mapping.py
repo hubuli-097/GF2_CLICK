@@ -27,6 +27,7 @@ TEMPLATE_DIR = _base_dir() / "click_shots"
 EXPLICIT_SHOTS: dict[str, str] = {
     "小食3.png": "小食3",
     "水果4.png": "水果4",
+    "浮沫2.png": "浮沫2",
 }
 
 

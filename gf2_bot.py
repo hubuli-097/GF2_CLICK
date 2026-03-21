@@ -38,6 +38,7 @@ ACTIVE_POINT_NAMES = {
     "饮料2",
     "饮料3",
     "浮沫1",
+    "浮沫2",
     "咖啡1",
     "锚点1",
 }
@@ -64,6 +65,12 @@ SUBMIT_IDLE_SEC = 1.0
 SUBMIT_TEMPLATE_NAME = "提交1"
 SUBMIT_MATCH_THRESHOLD = 0.78
 SUBMIT_POST_WAIT_SEC = 1.0
+
+# 运行模式（由 GUI 传入）
+RUN_MODE_NORMAL = "normal"
+RUN_MODE_INFINITE_MATERIAL = "infinite_material"  # 不点击任何「补充*」
+RUN_MODE_NO_CAT = "no_cat"  # 每次补充后额外等待（给猫动画等）
+NO_CAT_REPLENISH_WAIT_SEC = 3.0
 
 # 仅在右上角订单区域识别（固定 380x200，以进程窗口右上角为原点）
 ROI_WIDTH = 380
@@ -391,9 +398,22 @@ def run_bot(
     log: Callable[[str], None] = print,
     coord_scale: float | None = None,
     anchor_offset: Tuple[int, int] = (0, 0),
+    run_mode: str = RUN_MODE_NORMAL,
 ) -> None:
     """主循环，支持通过 stop_event 停止，log 用于输出日志。"""
+    if run_mode not in {
+        RUN_MODE_NORMAL,
+        RUN_MODE_INFINITE_MATERIAL,
+        RUN_MODE_NO_CAT,
+    }:
+        run_mode = RUN_MODE_NORMAL
+    mode_desc = {
+        RUN_MODE_NORMAL: "普通（主配料 + 自动补充）",
+        RUN_MODE_INFINITE_MATERIAL: "无限材料（不点补充）",
+        RUN_MODE_NO_CAT: f"无猫（补充后等待 {NO_CAT_REPLENISH_WAIT_SEC:.0f}s）",
+    }.get(run_mode, run_mode)
     log("GF2 点击脚本启动中...")
+    log(f"运行模式: {mode_desc}")
     calib_points = load_calib_points()
     templates = load_templates()
     if not templates:
@@ -525,7 +545,7 @@ def run_bot(
                 round_has_action = True
 
                 replenish_name = AUTO_REPLENISH.get(name)
-                if replenish_name:
+                if replenish_name and run_mode != RUN_MODE_INFINITE_MATERIAL:
                     rep_norm = normalize_name(replenish_name)
                     rep_xy = target_points.get(rep_norm)
                     if rep_xy:
@@ -535,6 +555,11 @@ def run_bot(
                             why=f"        -> 自动补充 {replenish_name} ->",
                         )
                         last_recognized_at = time.time()
+                        if run_mode == RUN_MODE_NO_CAT:
+                            log(
+                                f"        -> [无猫模式] 补充后等待 {NO_CAT_REPLENISH_WAIT_SEC:.0f}s"
+                            )
+                            stop_event.wait(NO_CAT_REPLENISH_WAIT_SEC)
                     else:
                         print(f"        -> 缺少补充坐标: {replenish_name}")
 
