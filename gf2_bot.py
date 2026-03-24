@@ -42,6 +42,7 @@ ACTIVE_POINT_NAMES = {
     "浮沫2",
     "咖啡1",
     "黄油1",
+    "雪绒花",
     "锚点1",
 }
 
@@ -74,7 +75,7 @@ SUBMIT_POST_WAIT_SEC = 1.0
 RUN_MODE_NORMAL = "normal"
 RUN_MODE_INFINITE_MATERIAL = "infinite_material"  # 不点击任何「补充*」（含补充黄油1）
 RUN_MODE_NO_CAT = "no_cat"  # 每次补充后额外等待（给猫动画等）
-NO_CAT_REPLENISH_WAIT_SEC = 3.0
+NO_CAT_REPLENISH_WAIT_SEC = 5.0
 
 # 仅在右上角订单区域识别（固定 380x200，以进程窗口右上角为原点）
 ROI_WIDTH = 380
