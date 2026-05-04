@@ -18,6 +18,7 @@ try:
         RUN_MODE_INFINITE_MATERIAL,
         RUN_MODE_NO_CAT,
         RUN_MODE_NORMAL,
+        WINDOW_TITLE_KEYWORDS,
         run_bot,
     )
     from force_client_window import (
@@ -34,6 +35,7 @@ except ImportError:
         RUN_MODE_INFINITE_MATERIAL,
         RUN_MODE_NO_CAT,
         RUN_MODE_NORMAL,
+        WINDOW_TITLE_KEYWORDS,
         run_bot,
     )
     from force_client_window import (
@@ -146,6 +148,21 @@ class GF2ClickApp:
             anchor=tk.W,
         ).pack(fill=tk.X)
 
+        process_frame = tk.Frame(self.root, padx=10, pady=4)
+        process_frame.pack(fill=tk.X)
+        tk.Label(process_frame, text="进程名:", fg="#666").pack(side=tk.LEFT, padx=(0, 6))
+        self.process_name_var = tk.StringVar(value="")
+        self.process_name_entry = tk.Entry(
+            process_frame, textvariable=self.process_name_var, width=36
+        )
+        self.process_name_entry.pack(side=tk.LEFT, padx=(0, 8))
+        tk.Label(
+            process_frame,
+            text="(用于窗口标题匹配，启动时追加到关键词列表)",
+            fg="#999",
+            font=("", 8),
+        ).pack(side=tk.LEFT)
+
         # 锚点修正：与 gf2_bot.build_target_points 一致，x 正=落点右移，y 正=落点上移（像素）
         opt_frame = tk.Frame(self.root, padx=10, pady=4)
         opt_frame.pack(fill=tk.X)
@@ -246,6 +263,14 @@ class GF2ClickApp:
         label = self.run_mode_display.get().strip()
         return RUN_MODE_DISPLAY_TO_KEY.get(label, RUN_MODE_NORMAL)
 
+    def _append_custom_window_keyword(self) -> None:
+        keyword = self.process_name_var.get().strip()
+        if not keyword:
+            return
+        if keyword not in WINDOW_TITLE_KEYWORDS:
+            WINDOW_TITLE_KEYWORDS.append(keyword)
+            self._log(f"已添加窗口标题关键词: {keyword}")
+
     def _get_purple_fruit_gui_adjust(self) -> tuple[int, int]:
         try:
             x = int(self.purple_fruit_adj_x_var.get().strip() or "0")
@@ -314,6 +339,7 @@ class GF2ClickApp:
         self.anchor_offset_x_entry.config(state=tk.DISABLED)
         self.anchor_offset_y_entry.config(state=tk.DISABLED)
         self.run_mode_menu.config(state=tk.DISABLED)
+        self.process_name_entry.config(state=tk.DISABLED)
         for w in (self.purple_fruit_adj_x_entry, self.purple_fruit_adj_y_entry):
             w.config(state=tk.DISABLED)
         self.status_var.set("状态: 运行中")
@@ -321,6 +347,7 @@ class GF2ClickApp:
         anchor_offset_x, anchor_offset_y = self._get_anchor_offset()
         run_mode_key = self._get_run_mode_key()
         purple_adj = self._get_purple_fruit_gui_adjust()
+        self._append_custom_window_keyword()
 
         def worker() -> None:
             try:
@@ -353,6 +380,7 @@ class GF2ClickApp:
         self.anchor_offset_x_entry.config(state=tk.NORMAL)
         self.anchor_offset_y_entry.config(state=tk.NORMAL)
         self.run_mode_menu.config(state=tk.NORMAL)
+        self.process_name_entry.config(state=tk.NORMAL)
         for w in (self.purple_fruit_adj_x_entry, self.purple_fruit_adj_y_entry):
             w.config(state=tk.NORMAL)
         self.status_var.set("状态: 已停止")

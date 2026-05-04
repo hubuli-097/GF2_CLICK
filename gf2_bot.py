@@ -82,7 +82,11 @@ ROI_WIDTH = 380
 ROI_HEIGHT = 200
 
 # 通过窗口标题关键字锁定游戏窗口（进程捕获的实用替代）
-WINDOW_TITLE_KEYWORDS = ["少女前线2", "GF2_Exilium"]
+WINDOW_TITLE_KEYWORDS = [
+    "少女前线2",
+    "GF2_Exilium",
+    "GIRLS' FRONTLINE 2: EXILIUM",
+]
 
 # 坐标缩放：标定时的 DPI 缩放 / 运行时的 DPI 缩放。标定 150%、运行 100% 时填 1.5；相同则填 1.0
 COORD_SCALE = 1.0
